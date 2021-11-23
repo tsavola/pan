@@ -2,10 +2,10 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package pan can be used to implement internal error propagation via
-// panic and recover.  The benefit over naive panic/recover usage is that
-// runtime errors (and other error values passed to panic) are propagated
-// as usual.
+// Package pan (short for panic) can be used to implement internal error
+// propagation via panic and recover.  A benefit over naive panic/recover
+// usage is that runtime errors and other unrelated panics are
+// disregarded.
 //
 //
 // Example
