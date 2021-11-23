@@ -13,17 +13,16 @@
 //     func check(err error)                 { pan.Check(err) }
 //     func checked[T any](x T, err error) T { pan.Check(err); return x }
 //
-//     func internal() {
+//     func internal() string {
 //         check(os.Chdir("/nonexistent"))
-//         println(checked(os.Getwd()))
+//         return checked(os.Getwd())
 //     }
 //
-//     func Public() (err error) {
-//         defer func() {
-//             err = pan.Recovered(recover())
-//         }()
-//
-//         internal()
+//     func Public() (s string, err error) {
+//         err = pan.Recover(func() {
+//             s = internal()
+//         })
+//         return
 //     }
 //
 package pan
@@ -47,17 +46,17 @@ func Check(err error) {
 	}
 }
 
-// Recovered returns an error if x is a panic value from Check.  If x is
-// nil, nil is returned.  If x is something else, Recovered panics with x
-// as the panic value.
-//
-// Intended usage:
-//
-//     defer func() {
-//         err = pan.Recovered(recover())
-//     }()
-//
-func Recovered(x interface{}) error {
+// Recover invokes f and returns any error value passed to Check.
+func Recover(f func()) (err error) {
+	defer func() { err = Error(recover()) }()
+	f()
+	return
+}
+
+// Error returns an error if x is a panic value from Check.  If x is nil,
+// nil is returned.  If x is something else, Error panics with x as the
+// panic value.
+func Error(x interface{}) error {
 	if x == nil {
 		return nil
 	}
@@ -67,10 +66,10 @@ func Recovered(x interface{}) error {
 	panic(x)
 }
 
-// Fatal is like Recovered, but the error is written to stderr and the
-// program terminates with exit status 1.
+// Fatal is like Error, but the error is written to stderr and the program
+// terminates with exit status 1.
 func Fatal(x interface{}) {
-	if err := Recovered(x); err != nil {
+	if err := Error(x); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
