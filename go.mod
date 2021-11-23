@@ -1,3 +1,3 @@
-module github.com/tsavola/pan
+module import.name/pan
 
 go 1.17

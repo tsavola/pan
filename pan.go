@@ -10,7 +10,7 @@
 //
 // Example
 //
-//     import "github.com/tsavola/pan"
+//     import "import.name/pan"
 //
 //     func check(err error)                 { pan.Check(err) }
 //     func checked[T any](x T, err error) T { pan.Check(err); return x }
