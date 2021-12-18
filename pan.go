@@ -41,23 +41,31 @@ type wrapper struct {
 func (w wrapper) Error() string { return w.err.Error() }
 func (w wrapper) Unwrap() error { return w.err }
 
-// Check panics unless err is nil.
+// Wrap error.  See Error, Fatal and Recover.
+func Wrap(err error) error {
+	if err == nil {
+		panic("error is nil")
+	}
+	return wrapper{err}
+}
+
+// Check panics unless err is nil.  See Error, Fatal and Recover.
 func Check(err error) {
 	if err != nil {
 		panic(wrapper{err})
 	}
 }
 
-// Recover invokes f and returns any error value passed to Check.
+// Recover invokes f and returns any error value passed to Check or Wrap.
 func Recover(f func()) (err error) {
 	defer func() { err = Error(recover()) }()
 	f()
 	return
 }
 
-// Error returns an error if x is a panic value from Check.  If x is nil,
-// nil is returned.  If x is something else, Error panics with x as the
-// panic value.
+// Error returns an error if x is a value from Check or Wrap.  If x is nil, nil
+// is returned.  If x is something else, Error panics with x as the panic
+// value.
 func Error(x interface{}) error {
 	if x == nil {
 		return nil
