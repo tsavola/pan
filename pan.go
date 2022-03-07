@@ -7,6 +7,9 @@
 // usage is that runtime errors and other unrelated panics are
 // disregarded.
 //
+// The check, must and mustcheck subpackages are designed to be used via dot
+// imports (if that's something you prefer).
+//
 //
 // Example 1
 //
@@ -46,6 +49,7 @@
 //         })
 //         return
 //     }
+//
 package pan
 
 import (
@@ -75,16 +79,16 @@ func Check(err error) {
 	}
 }
 
-// Recover invokes f and returns any error value passed to Check or Wrap.
+// Recover invokes f and returns any error value passed to Check, Must or Wrap.
 func Recover(f func()) (err error) {
 	defer func() { err = Error(recover()) }()
 	f()
 	return
 }
 
-// Error returns an error if x is a value from Check or Wrap.  If x is nil, nil
-// is returned.  If x is something else, Error panics with x as the panic
-// value.
+// Error returns an error if x is a value from Check, Must or Wrap.  If x is
+// nil, nil is returned.  If x is something else, Error panics with x as the
+// panic value.
 func Error(x interface{}) error {
 	if x == nil {
 		return nil
