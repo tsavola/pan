@@ -72,23 +72,29 @@ func Wrap(err error) error {
 	return wrapper{err}
 }
 
-// Check panics unless err is nil.  See Error, Fatal and Recover.
+// Panic unconditionally.  See Error, Fatal and Recover.
+func Panic(err error) {
+	panic(Wrap(err))
+}
+
+// Check panics if err is not nil.  See Error, Fatal and Recover.
 func Check(err error) {
 	if err != nil {
 		panic(wrapper{err})
 	}
 }
 
-// Recover invokes f and returns any error value passed to Check, Must or Wrap.
+// Recover invokes f and returns any error value passed to Check, Must, Panic
+// or Wrap.
 func Recover(f func()) (err error) {
 	defer func() { err = Error(recover()) }()
 	f()
 	return
 }
 
-// Error returns an error if x is a value from Check, Must or Wrap.  If x is
-// nil, nil is returned.  If x is something else, Error panics with x as the
-// panic value.
+// Error returns an error if x is a value created by Check, Must, Panic or
+// Wrap.  If x is nil, nil is returned.  If x is something else, Error panics
+// with x as the panic value.
 func Error(x interface{}) error {
 	if x == nil {
 		return nil
