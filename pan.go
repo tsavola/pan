@@ -12,12 +12,12 @@
 //
 //     import "import.name/pan"
 //
-//     func check(err error)                 { pan.Check(err) }
-//     func checked[T any](x T, err error) T { pan.Check(err); return x }
+//     func check(err error)              { pan.Check(err) }
+//     func must[T any](x T, err error) T { return pan.Must(x, err) }
 //
 //     func internal() string {
 //         check(os.Chdir("/nonexistent"))
-//         return checked(os.Getwd())
+//         return must(os.Getwd())
 //     }
 //
 //     func Public() (s string, err error) {
