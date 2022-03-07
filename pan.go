@@ -8,7 +8,7 @@
 // disregarded.
 //
 //
-// Example
+// Example 1
 //
 //     import "import.name/pan"
 //
@@ -27,6 +27,25 @@
 //         return
 //     }
 //
+//
+// Example 2
+//
+//     import (
+//         "import.name/pan"
+//         . "import.name/pan/mustcheck"
+//     )
+//
+//     func internal() string {
+//         Check(os.Chdir("/nonexistent"))
+//         return Must(os.Getwd())
+//     }
+//
+//     func Public() (s string, err error) {
+//         err = pan.Recover(func() {
+//             s = internal()
+//         })
+//         return
+//     }
 package pan
 
 import (
