@@ -13,3 +13,10 @@ func Must[T any](x T, err error) T {
 	Check(err)
 	return x
 }
+
+// Must2 panics if err is not nil.  Otherwise it returns x1 and x2.  See Error,
+// Fatal and Recover.
+func Must2[T1 any, T2 any](x1 T1, x2 T2, err error) (T1, T2) {
+	Check(err)
+	return x1, x2
+}

@@ -22,3 +22,8 @@ func Check(err error) {
 func Must[T any](x T, err error) T {
 	return pan.Must(x, err)
 }
+
+// Must2 is same as pan.Must2.
+func Must2[T1 any, T2 any](x1 T1, x2 T2, err error) (T1, T2) {
+	return pan.Must2(x1, x2, err)
+}
