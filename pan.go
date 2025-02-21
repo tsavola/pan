@@ -52,6 +52,7 @@ package pan
 import (
 	"fmt"
 	"os"
+	"runtime"
 )
 
 type wrapper struct {
@@ -64,7 +65,7 @@ func (w wrapper) Unwrap() error { return w.err }
 // Wrap error.  See Error, Fatal and Recover.
 func Wrap(err error) error {
 	if err == nil {
-		panic("error is nil")
+		err = new(runtime.PanicNilError)
 	}
 	return wrapper{err}
 }
