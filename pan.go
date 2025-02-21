@@ -10,46 +10,43 @@
 // The check, must and mustcheck subpackages are designed to be used via dot
 // imports (if that's something you prefer).
 //
-//
 // Example 1
 //
-//     import "import.name/pan"
+//	import "import.name/pan"
 //
-//     func check(err error)              { pan.Check(err) }
-//     func must[T any](x T, err error) T { return pan.Must(x, err) }
+//	func check(err error)              { pan.Check(err) }
+//	func must[T any](x T, err error) T { return pan.Must(x, err) }
 //
-//     func internal() string {
-//         check(os.Chdir("/nonexistent"))
-//         return must(os.Getwd())
-//     }
+//	func internal() string {
+//	    check(os.Chdir("/nonexistent"))
+//	    return must(os.Getwd())
+//	}
 //
-//     func Public() (s string, err error) {
-//         err = pan.Recover(func() {
-//             s = internal()
-//         })
-//         return
-//     }
-//
+//	func Public() (s string, err error) {
+//	    err = pan.Recover(func() {
+//	        s = internal()
+//	    })
+//	    return
+//	}
 //
 // Example 2
 //
-//     import (
-//         "import.name/pan"
-//         . "import.name/pan/mustcheck"
-//     )
+//	import (
+//	    "import.name/pan"
+//	    . "import.name/pan/mustcheck"
+//	)
 //
-//     func internal() string {
-//         Check(os.Chdir("/nonexistent"))
-//         return Must(os.Getwd())
-//     }
+//	func internal() string {
+//	    Check(os.Chdir("/nonexistent"))
+//	    return Must(os.Getwd())
+//	}
 //
-//     func Public() (s string, err error) {
-//         err = pan.Recover(func() {
-//             s = internal()
-//         })
-//         return
-//     }
-//
+//	func Public() (s string, err error) {
+//	    err = pan.Recover(func() {
+//	        s = internal()
+//	    })
+//	    return
+//	}
 package pan
 
 import (
