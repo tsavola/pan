@@ -89,6 +89,30 @@ func Recover(f func()) (err error) {
 	return
 }
 
+// Recover1 invokes f, and returns f's return value and any error value passed
+// to Check, Must, Panic or Wrap.
+func Recover1[T any](f func() T) (x T, err error) {
+	defer func() { err = Error(recover()) }()
+	x = f()
+	return
+}
+
+// Recover2 invokes f, and returns f's return values and any error value passed
+// to Check, Must, Panic or Wrap.
+func Recover2[T1, T2 any](f func() (T1, T2)) (x1 T1, x2 T2, err error) {
+	defer func() { err = Error(recover()) }()
+	x1, x2 = f()
+	return
+}
+
+// Recover3 invokes f, and returns f's return values and any error value passed
+// to Check, Must, Panic or Wrap.
+func Recover3[T1, T2, T3 any](f func() (T1, T2, T3)) (x1 T1, x2 T2, x3 T3, err error) {
+	defer func() { err = Error(recover()) }()
+	x1, x2, x3 = f()
+	return
+}
+
 // Error returns an error if x is a value created by Check, Must, Panic or
 // Wrap.  If x is nil, nil is returned.  If x is something else, Error panics
 // with x as the panic value.
