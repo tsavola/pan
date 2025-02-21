@@ -92,7 +92,7 @@ func Recover(f func()) (err error) {
 // Error returns an error if x is a value created by Check, Must, Panic or
 // Wrap.  If x is nil, nil is returned.  If x is something else, Error panics
 // with x as the panic value.
-func Error(x interface{}) error {
+func Error(x any) error {
 	if x == nil {
 		return nil
 	}
@@ -104,7 +104,7 @@ func Error(x interface{}) error {
 
 // Fatal is like Error, but the error is written to stderr and the program
 // terminates with exit status 1.
-func Fatal(x interface{}) {
+func Fatal(x any) {
 	if err := Error(x); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
