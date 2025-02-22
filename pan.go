@@ -42,7 +42,7 @@ func (w wrapper) Error() string { return w.err.Error() }
 func (w wrapper) Unwrap() error { return w.err }
 
 // Zone for error propagation.  Allocate a private instance of Zone for your
-// package or module.  A panic within a zone is not receovered within another
+// package or module.  A panic within a zone is not recovered within another
 // zone.
 type Zone struct{}
 
@@ -87,21 +87,21 @@ func (z *Zone) Recover(f func()) (err error) {
 	return
 }
 
-// Recover1 invokes f, returning any error raised within this zone.
+// Recover1 invokes f, returning any error raised within the specified zone.
 func Recover1[T any](z *Zone, f func() T) (x T, err error) {
 	defer func() { err = z.Error(recover()) }()
 	x = f()
 	return
 }
 
-// Recover2 invokes f, returning any error raised within this zone.
+// Recover2 invokes f, returning any error raised within the specified zone.
 func Recover2[T1, T2 any](z *Zone, f func() (T1, T2)) (x1 T1, x2 T2, err error) {
 	defer func() { err = z.Error(recover()) }()
 	x1, x2 = f()
 	return
 }
 
-// Recover3 invokes f, returning any error raised within this zone.
+// Recover3 invokes f, returning any error raised within the specified zone.
 func Recover3[T1, T2, T3 any](z *Zone, f func() (T1, T2, T3)) (x1 T1, x2 T2, x3 T3, err error) {
 	defer func() { err = z.Error(recover()) }()
 	x1, x2, x3 = f()
