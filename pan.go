@@ -3,156 +3,107 @@
 // license that can be found in the LICENSE file.
 
 // Package pan (short for panic) can be used to implement internal error
-// propagation via panic and recover.  A benefit over naive panic/recover
-// usage is that runtime errors and other unrelated panics are
-// disregarded.
+// propagation via panic and recover.  A benefit over plain panic/recover usage
+// is that unrelated panics are automatically disregarded.
 //
-// The check, must and mustcheck subpackages are designed to be used via dot
-// imports (if that's something you prefer).
-//
-// Example 1
+// Example
 //
 //	import "import.name/pan"
 //
-//	func check(err error)              { pan.Check(err) }
-//	func must[T any](x T, err error) T { return pan.Must(x, err) }
+//	var z = new(pan.Zone)
 //
-//	func internal() string {
-//	    check(os.Chdir("/nonexistent"))
-//	    return must(os.Getwd())
+//	func must[T any](value T, err error) T {
+//		z.Check(err)
+//		return value
 //	}
 //
-//	func Public() (s string, err error) {
-//	    err = pan.Recover(func() {
-//	        s = internal()
-//	    })
-//	    return
+//	func changeDirectory(dir string) string {
+//		z.Check(os.Chdir(dir))
+//		return must(os.Getwd())
 //	}
 //
-// Example 2
-//
-//	import (
-//	    "import.name/pan"
-//	    . "import.name/pan/mustcheck"
-//	)
-//
-//	func internal() string {
-//	    Check(os.Chdir("/nonexistent"))
-//	    return Must(os.Getwd())
-//	}
-//
-//	func Public() (s string, err error) {
-//	    err = pan.Recover(func() {
-//	        s = internal()
-//	    })
-//	    return
+//	func ChangeDirectory(dir string) (string, error) {
+//		return pan.Recover1(z, func() string {
+//			return changeDirectory(dir)
+//		})
 //	}
 package pan
 
 import (
-	"fmt"
-	"os"
 	"runtime"
 )
 
 type wrapper struct {
 	err error
+	z   *Zone
 }
 
 func (w wrapper) Error() string { return w.err.Error() }
 func (w wrapper) Unwrap() error { return w.err }
 
-// Wrap error.  See Error, Fatal and Recover.
-func Wrap(err error) error {
+// Zone for error propagation.  Allocate a private instance of Zone for your
+// package or module.  A panic within a zone is not receovered within another
+// zone.
+type Zone struct{}
+
+// Wrap an error.  panic(Wrap(err)) is equivalent to Panic(err), but can be
+// used to work around compilation errors.
+func (z *Zone) Wrap(err error) error {
 	if err == nil {
 		err = new(runtime.PanicNilError)
 	}
-	return wrapper{err}
+	return wrapper{err, z}
 }
 
-// Panic unconditionally.  See Error, Fatal and Recover.
-func Panic(err error) {
-	panic(Wrap(err))
+// Panic unconditionally.
+func (z *Zone) Panic(err error) {
+	panic(z.Wrap(err))
 }
 
-// Check panics if err is not nil.  See Error, Fatal and Recover.
-func Check(err error) {
+// Check err and panic unless it's nil.
+func (z *Zone) Check(err error) {
 	if err != nil {
-		panic(wrapper{err})
+		panic(wrapper{err, z})
 	}
 }
 
-// Recover invokes f and returns any error value passed to Check, Must, Panic
-// or Wrap.
-func Recover(f func()) (err error) {
-	defer func() { err = Error(recover()) }()
-	f()
-	return
-}
-
-// Recover1 invokes f, and returns f's return value and any error value passed
-// to Check, Must, Panic or Wrap.
-func Recover1[T any](f func() T) (x T, err error) {
-	defer func() { err = Error(recover()) }()
-	x = f()
-	return
-}
-
-// Recover2 invokes f, and returns f's return values and any error value passed
-// to Check, Must, Panic or Wrap.
-func Recover2[T1, T2 any](f func() (T1, T2)) (x1 T1, x2 T2, err error) {
-	defer func() { err = Error(recover()) }()
-	x1, x2 = f()
-	return
-}
-
-// Recover3 invokes f, and returns f's return values and any error value passed
-// to Check, Must, Panic or Wrap.
-func Recover3[T1, T2, T3 any](f func() (T1, T2, T3)) (x1 T1, x2 T2, x3 T3, err error) {
-	defer func() { err = Error(recover()) }()
-	x1, x2, x3 = f()
-	return
-}
-
-// Error returns an error if x is a value created by Check, Must, Panic or
-// Wrap.  If x is nil, nil is returned.  If x is something else, Error panics
-// with x as the panic value.
-func Error(x any) error {
+// Error returns the original error if x is a wrapper value created by Check,
+// Panic or Wrap within this zone.  If x is nil, nil is returned.  If x is
+// something else, Error panics with x as the panic value.
+func (z *Zone) Error(x any) error {
 	if x == nil {
 		return nil
 	}
-	if w, ok := x.(wrapper); ok {
+	if w, ok := x.(wrapper); ok && w.z == z {
 		return w.err
 	}
 	panic(x)
 }
 
-// Fatal is like Error, but the error is written to stderr and the program
-// terminates with exit status 1.
-func Fatal(x any) {
-	if err := Error(x); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+// Recover invokes f, returning any error raised within this zone.
+func (z *Zone) Recover(f func()) (err error) {
+	defer func() { err = z.Error(recover()) }()
+	f()
+	return
 }
 
-// Must panics if err is not nil.  Otherwise it returns x.  See Error, Fatal
-// and Recover.
-func Must[T any](x T, err error) T {
-	Check(err)
-	return x
+// Recover1 invokes f, returning any error raised within this zone.
+func Recover1[T any](z *Zone, f func() T) (x T, err error) {
+	defer func() { err = z.Error(recover()) }()
+	x = f()
+	return
 }
 
-// Must2 panics if err is not nil.  Otherwise it returns x1 and x2.  See Error,
-// Fatal and Recover.
-func Must2[T1, T2 any](x1 T1, x2 T2, err error) (T1, T2) {
-	Check(err)
-	return x1, x2
+// Recover2 invokes f, returning any error raised within this zone.
+func Recover2[T1, T2 any](z *Zone, f func() (T1, T2)) (x1 T1, x2 T2, err error) {
+	defer func() { err = z.Error(recover()) }()
+	x1, x2 = f()
+	return
 }
 
-// Must3 panics if err is not nil.  Otherwise it returns x1, x2 and x3.  See
-// Error, Fatal and Recover.
-func Must3[T1, T2, T3 any](x1 T1, x2 T2, x3 T3, err error) (T1, T2, T3) {
-	Check(err)
-	return x1, x2, x3
+// Recover3 invokes f, returning any error raised within this zone.
+func Recover3[T1, T2, T3 any](z *Zone, f func() (T1, T2, T3)) (x1 T1, x2 T2, x3 T3, err error) {
+	defer func() { err = z.Error(recover()) }()
+	x1, x2, x3 = f()
+	return
 }
