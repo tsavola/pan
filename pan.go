@@ -46,7 +46,7 @@ func (w wrapper) Unwrap() error { return w.err }
 // zone.
 type Zone struct{}
 
-// Wrap an error.  panic(Wrap(err)) is equivalent to Panic(err), but can be
+// Wrap an error.  panic(z.Wrap(err)) is equivalent to z.Panic(err), but can be
 // used to work around compilation errors.
 func (z *Zone) Wrap(err error) error {
 	if err == nil {
